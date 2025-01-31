@@ -1,6 +1,8 @@
-numpy
+numpy==1.26.4
 matplotlib
-rdkit
+rdkit==2022.3.3
 scipy
 tqdm
-scikit-learn
+scikit-learn==1.0.2
+tensorflow==2.14.0
+pandas==1.4.2

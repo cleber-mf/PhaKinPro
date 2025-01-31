@@ -16,7 +16,7 @@ def get_csv_from_smiles(smiles_list, options):
     for _key in _keys:
         headers.append(_key)
         headers.append(_key+"_proba")
-        if options["calculate_ad"]:
+        if options.get("calculate_ad", False):
             headers.append(_key+"_AD")
 
     string_file = StringIO()

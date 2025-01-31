@@ -17,7 +17,7 @@ def get_path(path):
     return os.path.join(os.path.dirname(__file__), path)
 
 
-# TF custom initializer
+# # TF custom initializer
 @keras.saving.register_keras_serializable()
 class CustomInitializer(tf.keras.initializers.Initializer):
     '''
@@ -148,6 +148,9 @@ class PhaKinProCYP:
                 np.array: predicted labels
         '''
         # Convert smiles to rdkit mol objects
+        if not isinstance(molecules, list):
+            molecules = [molecules]
+
         if isinstance(molecules[0], str):
             molecules = [MolFromSmiles(mol) for mol in molecules]
 
@@ -173,6 +176,35 @@ class PhaKinProCYP:
                 np.array: predicted probabilities
         '''
         # Convert smiles to rdkit mol objects
+        # Predict
+        if self.method == 'unanimous':
+            pred, proba = self._predict_ensemble_unanimous(self.models, molecules, self.thresholds)
+            pred = pred[0]
+            proba = proba[0]
+            if pred == 0:
+                return np.array([proba, 1 - proba]).reshape(1, -1)
+            if pred == 1:
+                return np.array([1-proba, proba]).reshape(1, -1)
+            if pred == 2:
+                return np.array([0.5, 0.5]).reshape(1, -1)
+        elif self.method == 'majority':
+            raise NotImplementedError('Majority voting is not implemented yet.')
+        else:
+            raise ValueError('Invalid method. Choose between "unanimous" and "majority".')
+
+    def predict_both(self, molecules):
+        '''
+            Predict the CYP enzyme for a list of smiles.
+
+            args:
+                molecules as list of smiles or rdkit mol objects
+
+            returns:
+                np.array: predicted probabilities
+        '''
+        # Convert smiles to rdkit mol objects
+        if not isinstance(molecules, list):
+            molecules = [molecules]
         if isinstance(molecules[0], str):
             molecules = [MolFromSmiles(mol) for mol in molecules]
 
@@ -181,7 +213,7 @@ class PhaKinProCYP:
 
         # Predict
         if self.method == 'unanimous':
-            return self._predict_ensemble_unanimous(self.models, fps, self.thresholds)[1]
+            return self._predict_ensemble_unanimous(self.models, fps, self.thresholds)
         elif self.method == 'majority':
             raise NotImplementedError('Majority voting is not implemented yet.')
         else:
@@ -282,3 +314,7 @@ class PhaKinProCYP:
         preds = preds.astype(int)
         probs = np.mean(probs, axis=0)
         return preds, probs
+
+
+model = PhaKinProCYP()
+print(model.predict(["CCCCC", "CCCCCO"]))

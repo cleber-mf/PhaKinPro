@@ -13,13 +13,25 @@ import _pickle as cPickle
 import io
 import matplotlib.pyplot as plt
 
-from cpy_model import PhaKinProCYP
+from PhaKinPro.cpy_model import PhaKinProCYP
+
+from rdkit.rdBase import BlockLogs
+block = BlockLogs()
 
 # god hates me so in my version of python I cannot supress these damn user warning so I do this nuclear option instead
 import warnings
 def warn(*args, **kwargs):
     pass
 warnings.warn = warn
+
+
+def load_model(f):
+    return cPickle.load(gzip.open(f, "rb"))
+
+
+def load_data(f):
+    return cPickle.load(bz2.BZ2File(f, 'rb'))
+
 
 MODEL_DICT = {
     'Hepatic Stability': ['Dataset_01B_hepatic-stability_15min_imbalanced-morgan_RF.pgz',
@@ -40,12 +52,16 @@ MODEL_DICT = {
     'Microsomal Intrinsic Clearance': ['Dataset_09_microsomal-intrinsic-clearance_12uL-min-mg-threshold-imbalanced-morgan_RF.pgz'],
     'Oral Bioavailability': ['dataset_10_oral_bioavailability_0.5_threshold_imbalanced-morgan_RF.pgz',
                              'dataset_10_oral_bioavailability_0.8_balanced-morgan_RF.pgz'],
-    "CYP3A4": PhaKinProCYP(cyp_type="3A4", endpoint),
-    "CYP2D6": PhaKinProCYP(cyp_type="2D6"),
-    "CYP2C9": PhaKinProCYP(cyp_type="2C9")
 }
 
-
+CYP_MODEL_DICT = {
+    "CYP3A4 Inhibition": PhaKinProCYP(cyp_type="3A4", endpoint="inh"),
+    "CYP3A4 Substrate": PhaKinProCYP(cyp_type="3A4", endpoint="sub"),
+    "CYP2D6 Inhibition": PhaKinProCYP(cyp_type="2D6", endpoint="inh"),
+    "CYP2D6 Substrate": PhaKinProCYP(cyp_type="2D6", endpoint="sub"),
+    "CYP2C9 Inhibition": PhaKinProCYP(cyp_type="2C9", endpoint="inh"),
+    "CYP2C9 Substrate": PhaKinProCYP(cyp_type="2C9", endpoint="sub")
+}
 
 # lol I'm just like screw code readability sorry
 MODEL_DICT_INVERT = {v: key for key, val in MODEL_DICT.items() for v in val}
@@ -112,8 +128,26 @@ CLASSIFICATION_DICT = {
         1: "Substrate",
         2: "Inconsistent result: no prediction"
     },
-    "CYP2D6": PhaKinProCYP(cyp_type="2D6"),
-    "CYP2C9": PhaKinProCYP(cyp_type="2C9")
+    "CYP2D6 Inhibition": {
+        0: "No inhibition",
+        1: "Inhibition",
+        2: "Inconsistent result: no prediction"
+    },
+    "CYP2D6 Substrate": {
+        0: "Not a substrate",
+        1: "Substrate",
+        2: "Inconsistent result: no prediction"
+    },
+    "CYP2C9 Inhibition": {
+        0: "No inhibition",
+        1: "Inhibition",
+        2: "Inconsistent result: no prediction"
+    },
+    "CYP2C9 Substrate": {
+        0: "Not a substrate",
+        1: "Substrate",
+        2: "Inconsistent result: no prediction"
+    }
 }
 
 
@@ -121,6 +155,12 @@ AD_DICT = {
     True: "Inside",
     False: "Outside"
 }
+
+# models = sorted([cPickle.load(gzip.open(f, "rb")) for f in glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./models/*.pgz"))],
+#                 key=lambda x: x.split("_")[1])
+# models_data = sorted(
+#     [cPickle.load(bz2.BZ2File(f, 'rb')) for f in glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./models/*.pbz2"))],
+#     key=lambda x: x.split("_")[1])
 
 
 def run_prediction(model, model_data, smiles, calculate_ad=True):
@@ -208,6 +248,22 @@ def main(smiles, calculate_ad=True, make_prop_img=False, **kwargs):
 
         values.setdefault(MODEL_DICT_INVERT[os.path.basename(model_endpoint)], []).append([int(pred), str(round(float(pred_proba) * 100, 2)) + "%", AD_DICT[ad], svg_str])
 
+    for model_name, cyp_model in CYP_MODEL_DICT.items():
+        if not default(model_name, kwargs):
+            continue
+
+        pred, pred_proba = cyp_model.predict_both([smiles])
+        pred = int(pred[0])
+        pred_proba = str(round(float(pred_proba[0]) * 100, 2)) + "%"
+        ad = "NA"
+
+        svg_str = ""
+        if make_prop_img and pred != 2:
+            svg_str = get_prob_map(cyp_model, smiles)
+
+        values.setdefault(model_name, []).append([pred, pred_proba, ad, svg_str])
+
+
     processed_results = []
     for key, val in values.items():
         if key in ['Hepatic Stability', 'Renal Clearance', 'Plasma Half-life', 'Oral Bioavailability']:
@@ -221,6 +277,11 @@ def main(smiles, calculate_ad=True, make_prop_img=False, **kwargs):
                 else:
                     p = new_pred - 2
                 processed_results.append([key, CLASSIFICATION_DICT[key][new_pred], val[p][1], val[p][2], val[p][3]])
+        elif key in CYP_MODEL_DICT.keys():
+            if val[0][0] == 2:
+                processed_results.append([key, "Inconsistent result: no prediction", "Very unconfident", "NA", ""])
+            else:
+                processed_results.append([key, CLASSIFICATION_DICT[key][val[0][0]], val[0][1], val[0][2], val[0][3]])
         else:
             processed_results.append([key, CLASSIFICATION_DICT[key][val[0][0]], val[0][1], val[0][2], val[0][3]])
 

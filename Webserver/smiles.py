@@ -66,7 +66,11 @@ AD_MEANING = {
     "Less than 0.5 F": "Red means supports < 0.5F green supports >= 0.5F",
     "Between 0.5 and 0.8 F": "Red means supports < 0.5F or > 0.8F green supports 0.5 - 0.8F",
     "Above 0.8 F": "Red means supports < 0.8F green supports >= 0.8F",
-    "Inconsistent result: no prediction": ""
+    "Inconsistent result: no prediction": "",
+    "No inhibition": "Red means supports no inhibition green support inhibition",
+    "Inhibition": "Red means supports no inhibition green support inhibition",
+    "Substrate": "Red means supports not a substrate green support substrate",
+    "Not a substrate": "Red means supports not a substrate green support substrate",
 }
 
 color_text = False  # set to True if you want to color code the text

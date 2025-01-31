@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, abort, Response, jsonify
 from smiles import get_molecule_data_from_smiles
-from PhaKinPro.phakinpro import MODEL_DICT
+from PhaKinPro.phakinpro import MODEL_DICT, CYP_MODEL_DICT
 from csv_smiles import get_csv_from_smiles
 
 app = Flask(__name__)
@@ -15,7 +15,7 @@ def home():
 @app.route('/models', methods=['GET'])
 def mol_properties():
     print("model_selection")
-    return jsonify(list(MODEL_DICT.keys())), 200
+    return jsonify(list(MODEL_DICT.keys()) + list(CYP_MODEL_DICT.keys())), 200
 
 
 @app.route('/smiles', methods=['POST'])
