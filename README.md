@@ -2,7 +2,7 @@
 
 > **My contribution to this project**
 >
-> I contributed to the development of PhaKinPro and am a co-author of the
+> I contributed to data curation and am a co-author of the
 > associated Journal of Medicinal Chemistry publication. My specific
 > contribution included curation of the renal clearance dataset used for
 > subsequent QSAR model development. PhaKinPro was developed as a
