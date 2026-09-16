@@ -1,9 +1,26 @@
 # PhaKinPro
 
+> **My contribution to this project**
+>
+> I contributed to the development of PhaKinPro and am a co-author of the
+> associated Journal of Medicinal Chemistry publication. My specific
+> contribution included curation of the renal clearance dataset used for
+> subsequent QSAR model development. PhaKinPro was developed as a
+> collaborative project involving multiple contributors to data collection,
+> curation, modeling, validation, and implementation.
+>
+> **Associated publication:**
+>
+> Rath, M., Wellnitz, J., Martin, H.-J., Melo-Filho, C. C., et al.
+> *Pharmacokinetics Profiler (PhaKinPro): Model Development, Validation,
+> and Implementation as a Web Tool for Triaging Compounds with Undesired
+> Pharmacokinetics Profiles.* Journal of Medicinal Chemistry, 2024,
+> 67(8), 6508–6518.
+
 PHArmacoKINetic PROperty calculator: Used to predict varies pharmacokinetic properties using QSAR models. If you use please cite [our paper](https://pubs.acs.org/doi/10.1021/acs.jmedchem.3c02446). There is a [webserver](http://34.170.18.221/) that runs these models, but for large numbers of compounds, running locally using this code is much more effective
 
-# Requierments
-Install the requirments from the requirements.txt file. Additionally, if you want to run the webserver, you need to install flask and qunicorn
+# Requirements
+Install the requirements from the requirements.txt file. Additionally, if you want to run the webserver, you need to install flask and qunicorn
 
 # Command line use
 After downloading, `PhaKinPro/phakinpro.py` can be called from the command line with `python pharkinpro --help`
